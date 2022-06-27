@@ -5,8 +5,14 @@
 package it.polito.tdp.nyc;
 
 import java.net.URL;
+import java.util.List;
 import java.util.ResourceBundle;
+
+import it.polito.tdp.nyc.model.CittaVicina;
+import it.polito.tdp.nyc.model.City;
 import it.polito.tdp.nyc.model.Model;
+import it.polito.tdp.nyc.model.Provider;
+import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -15,6 +21,7 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.scene.control.cell.PropertyValueFactory;
 
 public class FXMLController {
 	
@@ -36,10 +43,10 @@ public class FXMLController {
     private Button btnCreaLista; // Value injected by FXMLLoader
 
     @FXML // fx:id="cmbProvider"
-    private ComboBox<String> cmbProvider; // Value injected by FXMLLoader
+    private ComboBox<Provider> cmbProvider; // Value injected by FXMLLoader
 
     @FXML // fx:id="cmbQuartiere"
-    private ComboBox<?> cmbQuartiere; // Value injected by FXMLLoader
+    private ComboBox<City> cmbQuartiere; // Value injected by FXMLLoader
 
     @FXML // fx:id="txtMemoria"
     private TextField txtMemoria; // Value injected by FXMLLoader
@@ -48,22 +55,31 @@ public class FXMLController {
     private TextArea txtResult; // Value injected by FXMLLoader
     
     @FXML // fx:id="clQuartiere"
-    private TableColumn<?, ?> clQuartiere; // Value injected by FXMLLoader
+    private TableColumn<CittaVicina, String> clQuartiere; // Value injected by FXMLLoader
  
     @FXML // fx:id="clDistanza"
-    private TableColumn<?, ?> clDistanza; // Value injected by FXMLLoader
+    private TableColumn<CittaVicina, Double> clDistanza; // Value injected by FXMLLoader
     
     @FXML // fx:id="tblQuartieri"
-    private TableView<?> tblQuartieri; // Value injected by FXMLLoader
+    private TableView<CittaVicina> tblQuartieri; // Value injected by FXMLLoader
 
     @FXML
     void doCreaGrafo(ActionEvent event) {
-    	
+    	txtResult.clear();
+    	String res = this.model.creaGrafo(cmbProvider.getValue());
+    	txtResult.appendText(res);
+    	this.cmbQuartiere.getItems().addAll(this.model.getVertici());
     }
 
     @FXML
     void doQuartieriAdiacenti(ActionEvent event) {
     	
+    	List<CittaVicina> cittaVicine = this.model.quartieriAdiacenti(this.cmbQuartiere.getValue());
+    	txtResult.setText(String.format("La citta %s e' connessa alle seguenti citta:\n", this.cmbQuartiere.getValue()));
+//    	for(CittaVicina c : cittaVicine) {
+//    		txtResult.appendText(String.format("%s a distanza %f\n", c.getCity().getName(), c.getDistanza()));
+//    	}
+    	this.tblQuartieri.setItems(FXCollections.observableArrayList(cittaVicine));
     }
 
     @FXML
@@ -82,11 +98,13 @@ public class FXMLController {
         assert txtResult != null : "fx:id=\"txtResult\" was not injected: check your FXML file 'Scene.fxml'.";
         assert clDistanza != null : "fx:id=\"clDistanza\" was not injected: check your FXML file 'Scene.fxml'.";
         assert clQuartiere != null : "fx:id=\"clQuartiere\" was not injected: check your FXML file 'Scene.fxml'.";
-
+        this.clDistanza.setCellValueFactory(new PropertyValueFactory<CittaVicina, Double>("distanza"));
+        this.clQuartiere.setCellValueFactory(new PropertyValueFactory<CittaVicina, String>("city"));
     }
     
     public void setModel(Model model) {
     	this.model = model;
+    	this.cmbProvider.getItems().addAll(this.model.getProviders());
     }
 
 }
